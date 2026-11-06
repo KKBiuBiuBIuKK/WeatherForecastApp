@@ -12,6 +12,12 @@ Kotlin + Jetpack Compose（Material 3）实现的天气预报应用，按 Clean 
 - Loading / Error 状态展示，支持重试
 - 启动时默认加载北京天气，避免空白首页
 
+## App 预览
+
+<p align="center">
+  <img src="docs/app-preview.png" alt="天气预报 App 预览" width="320" />
+</p>
+
 ## 运行方式
 
 ### 环境要求
@@ -39,13 +45,16 @@ Debug APK 输出路径：`app/build/outputs/apk/debug/app-debug.apk`
 
 ## 架构
 
-单 Gradle 模块 `:app`，用包结构表达 Clean Architecture，依赖单向：
+单 Gradle 模块 `:app`，用包结构表达 Clean Architecture，依赖单向（箭头表示「依赖」）：
 
 ```
 presentation  →  domain  ←  data
-                    ↑
-                  core
+       \            |         /
+        \           ↓        /
+         \----→   core  ←---/
 ```
+
+说明：`core`（`AppError` / `Outcome` / 网络封装）不依赖业务层；`domain` / `data` / `presentation` 按需依赖 `core`。`domain` 不依赖 `data` / `presentation`。
 
 ```
 app/src/main/java/com/weatherforecast/app/
@@ -82,16 +91,6 @@ Compose UI → WeatherViewModel (StateFlow<WeatherUiState>)
 | 天气预报 | `https://api.open-meteo.com/v1/forecast` |
 
 无需注册、无需 Key；天气码使用 WMO code，在 UI 层映射为中文描述与 Material Icons。
-
-## 技术取舍（Trade-offs）
-
-| 决策 | 原因 |
-|------|------|
-| 单 module + 包分层，而非多 Gradle module | 作业预计 4–6 小时；包边界已能体现 Clean Architecture，避免过度工程 |
-| `HttpURLConnection` + `org.json` | 满足「原生网络封装、少三方库」；不引入 Retrofit / OkHttp / Gson |
-| 手动 `AppContainer` | 不引入 Hilt/Koin，依赖图对评审更直观 |
-| 固定 °C、不做单位切换 / 离线缓存 / 地图 | 控制范围；文档更看重架构与可维护性 |
-| Material 3 组件 + Theme tokens | 颜色/字号走 `MaterialTheme`，支持系统深色与动态取色（Android 12+） |
 
 ## 依赖说明
 
